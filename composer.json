@@ -1,0 +1,20 @@
+{
+  "name": "tqxxkj/simple-sql",
+  "description": "简单的 SQL 查询工具",
+  "version": "1.0.0",
+  "require": {
+    "php": ">=7.1"
+  },
+  "authors": [
+    {
+      "name": "JiangChunbo",
+      "email": "945086245@qq.com"
+    }
+  ],
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Tqxxkj\\SimpleSql\\": "src/SimpleSql"
+    }
+  }
+}
