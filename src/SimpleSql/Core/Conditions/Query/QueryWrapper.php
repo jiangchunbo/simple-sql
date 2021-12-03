@@ -16,7 +16,7 @@ class QueryWrapper extends AbstractWrapper
         $this->sql_select = '*';
     }
 
-    public static function newInstance()
+    public static function get()
     {
         return new QueryWrapper();
     }

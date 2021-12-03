@@ -18,4 +18,6 @@ $session = $sqlSessionFactory->openSession();
 
 $list = $session->selectList("select * from `users`", []);
 
+
+
 var_dump($list);
