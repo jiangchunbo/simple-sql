@@ -6,5 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Tqxxkj\\SimpleSql\\Tests\\' => array($baseDir . '/tests'),
     'Tqxxkj\\SimpleSql\\' => array($baseDir . '/src/SimpleSql'),
 );

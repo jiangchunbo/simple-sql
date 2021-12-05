@@ -4,17 +4,17 @@ namespace Tqxxkj\SimpleSql\DataSource;
 
 use Exception;
 use PDO;
+use Tqxxkj\SimpleSql\Mapping\Environment;
 
 /**
  * Class SimpleDataSource
  * 一个没有池化的数据源
  * @package Tqxxkj\SimpleSql\DataSource
  */
-class SimpleDataSource
+class UnpooledDataSource implements DataSource
 {
     /**
      * SimpleDataSource constructor.
-     * @param $database
      */
     public function __construct()
     {
@@ -22,7 +22,7 @@ class SimpleDataSource
 
 
     /**
-     *
+     * 获取一个新的 PDO 连接
      * @return PDO
      * @throws Exception
      */

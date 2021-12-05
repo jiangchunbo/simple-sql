@@ -1,10 +1,11 @@
 <?php
 
-namespace Tqxxkj\SimpleSql\DataSource;
+namespace Tqxxkj\SimpleSql\Session\Defaults;
 
 use Exception;
+use Tqxxkj\SimpleSql\Executor\SimpleExecutor;
 
-class SimpleSqlSession
+class DefaultSqlSession
 {
     /**
      * @var SimpleExecutor
@@ -20,11 +21,6 @@ class SimpleSqlSession
         $this->executor = $executor;
     }
 
-
-    public function selectList($sql, $parameters = [])
-    {
-        return $this->executor->doQuery($sql, $parameters);
-    }
 
     /**
      * @param string $sql
@@ -42,5 +38,10 @@ class SimpleSqlSession
         } else {
             return null;
         }
+    }
+
+    public function selectList($sql, $parameters = [])
+    {
+        return $this->executor->doQuery($sql, $parameters);
     }
 }

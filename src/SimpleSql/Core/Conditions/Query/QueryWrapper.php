@@ -9,11 +9,11 @@ class QueryWrapper extends AbstractWrapper
     /**
      * @var string select 子句的内容
      */
-    public $sql_select;
+    public $sqlSelect;
 
     public function __construct()
     {
-        $this->sql_select = '*';
+        $this->sqlSelect = '*';
     }
 
     public static function get()
@@ -29,7 +29,7 @@ class QueryWrapper extends AbstractWrapper
     public function select(...$columns)
     {
         if ($columns) {
-            $this->sql_select = sprintf('%s', join(",", $columns));
+            $this->sqlSelect = sprintf('%s', join(",", $columns));
         }
         return $this;
     }

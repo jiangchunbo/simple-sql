@@ -3,7 +3,8 @@
   "description": "简单的 SQL 查询工具",
   "version": "1.0.0",
   "require": {
-    "php": ">=7.1"
+    "php": ">=7.1",
+    "ext-pdo": "*"
   },
   "authors": [
     {
@@ -15,6 +16,11 @@
   "autoload": {
     "psr-4": {
       "Tqxxkj\\SimpleSql\\": "src/SimpleSql"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tqxxkj\\SimpleSql\\Tests\\": "tests"
     }
   }
 }

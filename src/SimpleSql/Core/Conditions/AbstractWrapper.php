@@ -11,28 +11,28 @@ abstract class AbstractWrapper
     /**
      * @var array 查询条件的组成片段, 比如 ['id', '=', '1']
      */
-    public $normal_segment_list = [];
+    public $normalSegmentList = [];
 
     /**
      * @var array group by 子句 片段
      */
-    public $group_by_segment_list = [];
+    public $groupBySegmentList = [];
 
     /**
      * @var array having 子句片段
      */
-    public $having_segment_list = [];
+    public $havingSegmentList = [];
 
     /**
      * @var array order by 子句组成的片段，以空格分隔
      */
-    public $order_by_segment_list = [];
+    public $orderBySegmentList = [];
 
 
     /**
      * @var array 占位符对应的值
      */
-    public $to_bind_values = [];
+    public $toBindValues = [];
 
     /**
      * @param string $column    列名
@@ -227,26 +227,26 @@ abstract class AbstractWrapper
         switch ($sql_segments[0]) {
             case self::GROUP_BY:
                 array_splice($sql_segments, 0, 1); // 第一个是 GROUP_BY 标志, 删除
-                array_push($this->group_by_segment_list, ...$sql_segments);
+                array_push($this->groupBySegmentList, ...$sql_segments);
                 break;
             case self::HAVING:
                 break;
             case self::ORDER_BY:
                 array_splice($sql_segments, 0, 1); // 第一个是 ORDER_BY 标志, 删除
-                array_push($this->order_by_segment_list, ...$sql_segments);
+                array_push($this->orderBySegmentList, ...$sql_segments);
                 break;
             default: // 默认为 where 子句
-                if ($this->normal_segment_list) {
-                    array_push($this->normal_segment_list, 'and');
+                if ($this->normalSegmentList) {
+                    array_push($this->normalSegmentList, 'and');
                 }
-                array_push($this->normal_segment_list, ...$sql_segments);
+                array_push($this->normalSegmentList, ...$sql_segments);
         }
     }
 
 
     public function addBindValues($value)
     {
-        $place_holder_index = sizeof($this->to_bind_values);
-        $this->to_bind_values[$place_holder_index + 1] = is_array($value) ? [$value[0], $value[1]] : $value;
+        $place_holder_index = sizeof($this->toBindValues);
+        $this->toBindValues[$place_holder_index + 1] = is_array($value) ? [$value[0], $value[1]] : $value;
     }
 }

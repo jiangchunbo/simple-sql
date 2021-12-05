@@ -1,20 +1,22 @@
 <?php
 
-namespace Tqxxkj\SimpleSql\DataSource;
+namespace Tqxxkj\SimpleSql\Mapping;
 
 use PDO;
+use Tqxxkj\SimpleSql\DataSource\DataSource;
+use Tqxxkj\SimpleSql\Transaction\PdoTransactionFactory;
 
 class Environment
 {
     private static $id;
 
     /**
-     * @var SimpleDataSource
+     * @var DataSource
      */
     private static $dataSource;
 
     /**
-     * @var TransactionFactory
+     * @var PdoTransactionFactory
      */
     private static $transactionFactory;
 

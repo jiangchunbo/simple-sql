@@ -9,11 +9,16 @@ class ComposerStaticInit0bb3d43f56464d85c8db3dd2ef2f1f2f
     public static $prefixLengthsPsr4 = array (
         'T' => 
         array (
+            'Tqxxkj\\SimpleSql\\Tests\\' => 23,
             'Tqxxkj\\SimpleSql\\' => 17,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Tqxxkj\\SimpleSql\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/tests',
+        ),
         'Tqxxkj\\SimpleSql\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src/SimpleSql',
