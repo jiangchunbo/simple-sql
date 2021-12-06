@@ -66,6 +66,8 @@ class MysqlPreparedStatement implements PreparedStatement
      */
     public function getGeneratedKeys(): array
     {
-        return [$this->lastInsertId];
+        $lastInsertId = $this->lastInsertId;
+        $this->lastInsertId = [];
+        return [$lastInsertId];
     }
 }

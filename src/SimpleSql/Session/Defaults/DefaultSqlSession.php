@@ -41,9 +41,11 @@ class DefaultSqlSession implements SqlSession
         return $this->executor->doQuery($sql, $parameters);
     }
 
-    public function insert(string $sql, array $parameters = []): int
+    public function insert(string $sql, array $parameters = [], int &$generatedKey = 0): int
     {
-        return $this->executor->update($sql, $parameters);
+        $result = $this->executor->update($sql, $parameters);
+        $generatedKey = $parameters['id'];
+        return $result;
     }
 
     public function update(string $sql, array $parameters = []): int

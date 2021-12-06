@@ -13,6 +13,7 @@ class QueryWrapper extends AbstractWrapper
 
     public function __construct()
     {
+        parent::__construct();
         $this->sqlSelect = '*';
     }
 

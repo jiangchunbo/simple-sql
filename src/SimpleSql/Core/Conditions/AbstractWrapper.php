@@ -2,41 +2,28 @@
 
 namespace Tqxxkj\SimpleSql\Core\Conditions;
 
-use Tqxxkj\SimpleSql\Core\Conditions\Segments\GroupBySegmentList;
-use Tqxxkj\SimpleSql\Core\Conditions\Segments\HavingSegmentList;
-use Tqxxkj\SimpleSql\Core\Conditions\Segments\NormalSegmentList;
-use Tqxxkj\SimpleSql\Core\Conditions\Segments\OrderBySegmentList;
+use Tqxxkj\SimpleSql\Core\Conditions\Segments\MergeSegments;
 
-abstract class AbstractWrapper
+abstract class AbstractWrapper extends Wrapper
 {
-    const ORDER_BY = 'order by';
-    const GROUP_BY = 'group by';
-    const HAVING = 'having';
-
     /**
-     * @var NormalSegmentList 查询条件的组成片段, 比如 ['id', '=', '1']
+     * @var MergeSegments
      */
-    public $normalSegmentList;
-
-    /**
-     * @var GroupBySegmentList group by 子句 片段
-     */
-    public $groupBySegmentList;
-
-    /**
-     * @var HavingSegmentList having 子句片段
-     */
-    public $havingSegmentList;
-
-    /**
-     * @var OrderBySegmentList order by 子句组成的片段，以空格分隔
-     */
-    public $orderBySegmentList;
+    private $express;
 
     /**
      * @var array 需要绑定的参数缓存
      */
     public $paramIndexValuePairs = [];
+
+    /**
+     * AbstractWrapper constructor.
+     */
+    public function __construct()
+    {
+        $this->express = new MergeSegments();
+    }
+
 
     /**
      * @param string $column    列名
@@ -46,7 +33,7 @@ abstract class AbstractWrapper
      */
     public function eq($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '=', '?');
+        $this->addCondition($condition, "`$column`", '=', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -60,7 +47,7 @@ abstract class AbstractWrapper
      */
     public function ne($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '<>', '?');
+        $this->addCondition($condition, "`$column`", '<>', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -74,7 +61,7 @@ abstract class AbstractWrapper
      */
     public function gt($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '>', '?');
+        $this->addCondition($condition, "`$column`", '>', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -89,7 +76,7 @@ abstract class AbstractWrapper
      */
     public function ge($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '>=', '?');
+        $this->addCondition($condition, "`$column`", '>=', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -103,7 +90,7 @@ abstract class AbstractWrapper
      */
     public function lt($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '<', '?');
+        $this->addCondition($condition, "`$column`", '<', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -117,7 +104,7 @@ abstract class AbstractWrapper
      */
     public function le($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", '<=', '?');
+        $this->addCondition($condition, "`$column`", '<=', '?');
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -131,7 +118,7 @@ abstract class AbstractWrapper
      */
     public function like($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", 'like', "CONCAT('%',?,'%')");
+        $this->addCondition($condition, "`$column`", 'like', "CONCAT('%',?,'%')");
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -145,7 +132,7 @@ abstract class AbstractWrapper
      */
     public function likeLeft($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", 'like', "CONCAT('%',?)");
+        $this->addCondition($condition, "`$column`", 'like', "CONCAT('%',?)");
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -159,7 +146,7 @@ abstract class AbstractWrapper
      */
     public function likeRight($column, $value, $condition = true): AbstractWrapper
     {
-        $this->doIt($condition, "`{$column}`", 'like', "CONCAT(?,'%')");
+        $this->addCondition($condition, "`$column`", 'like', "CONCAT(?,'%')");
         $this->addParamIndexValuePairs($value);
         return $this;
     }
@@ -169,18 +156,17 @@ abstract class AbstractWrapper
      * in 查询
      * @param       $column
      * @param       $value_list
-     * @param int   $type
      * @param bool  $condition
      * @return $this
      */
-    public function in($column, $value_list, $type = \PDO::PARAM_STR, $condition = true): AbstractWrapper
+    public function in($column, $value_list, $condition = true): AbstractWrapper
     {
         if (!$value_list) {
-            $value_list = [''];
+            return $this;
         }
-        $this->doIt(
+        $this->addCondition(
             $condition,
-            "`{$column}`",
+            "`$column`",
             'in',
             sprintf('(%s)', join(',', array_fill(0, sizeof($value_list), '?')))
         );
@@ -190,12 +176,12 @@ abstract class AbstractWrapper
         return $this;
     }
 
-    public function groupBy(...$columns)
+    public function groupBy(...$columns): AbstractWrapper
     {
         if (!$columns) {
             return $this;
         }
-        $this->doIt(true, self::GROUP_BY, ...$columns);
+        $this->addCondition(true, 'group by', ...$columns);
         return $this;
     }
 
@@ -207,13 +193,13 @@ abstract class AbstractWrapper
      * @param bool   $condition
      * @return AbstractWrapper
      */
-    public function orderBy($column, $isAsc = true, $condition = true)
+    public function orderBy($column, $isAsc = true, $condition = true): AbstractWrapper
     {
         if (!$column) {
             return $this;
         }
         $mode = $isAsc ? 'asc' : 'desc';
-        $this->doIt($condition, self::ORDER_BY, "`{$column}`", $mode);
+        $this->addCondition($condition, 'order by', "`$column`", $mode);
         return $this;
     }
 
@@ -223,24 +209,12 @@ abstract class AbstractWrapper
      * @param       $condition
      * @param mixed ...$sqlSegments
      */
-    public function doIt($condition, ...$sqlSegments)
+    public function addCondition($condition, ...$sqlSegments)
     {
         if (!$condition) {
             return;
         }
-        switch ($sqlSegments[0]) {
-            case self::ORDER_BY:
-                $this->orderBySegmentList->addAll($sqlSegments);
-                break;
-            case self::GROUP_BY:
-                $this->groupBySegmentList->addAll($sqlSegments);
-                break;
-            case self::HAVING:
-                $this->havingSegmentList->addAll($sqlSegments);
-                break;
-            default: // 默认为 where 子句
-                $this->normalSegmentList->addAll($sqlSegments);
-        }
+        $this->express->add(...$sqlSegments);
     }
 
 

@@ -52,7 +52,9 @@ class SimpleExecutor extends BaseExecutor
             $this->setParameter($statement, $index, $parameter);
         }
         $rowCount = $statement->executeUpdate();
-        $parameters['id'] = $statement->getGeneratedKeys()[0];
+        if ($statement->getGeneratedKeys()) {
+            $parameters['id'] = (int)$statement->getGeneratedKeys()[0];
+        }
         return $rowCount;
     }
 

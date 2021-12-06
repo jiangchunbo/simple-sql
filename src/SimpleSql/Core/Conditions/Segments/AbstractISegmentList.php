@@ -5,7 +5,7 @@ namespace Tqxxkj\SimpleSql\Core\Conditions\Segments;
 abstract class AbstractISegmentList
 {
 
-    public $segmentList;
+    public $segmentList = [];
 
     protected $lastValue;
 

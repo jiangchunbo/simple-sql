@@ -3,6 +3,8 @@
 namespace Tqxxkj\SimpleSql\Dao;
 
 use Exception;
+use Tqxxkj\SimpleSql\Core\Conditions\AbstractWrapper;
+use Tqxxkj\SimpleSql\Core\Conditions\Wrapper;
 
 abstract class BaseService
 {
@@ -27,7 +29,7 @@ abstract class BaseService
      * @param $entity
      * @throws Exception
      */
-    public function save($entity)
+    public function save(&$entity)
     {
         $this->dao->insert($entity);
     }
@@ -37,11 +39,46 @@ abstract class BaseService
      * @param $entityList
      * @throws Exception
      */
-    public function saveBatch($entityList)
+    public function saveBatch(&$entityList)
     {
-        foreach ($entityList as $entity) {
+        foreach ($entityList as &$entity) {
             $this->dao->insert($entity);
         }
+    }
+
+
+    /**
+     * 根据 ID 删除一条数据
+     * @param $id
+     * @return int
+     */
+    public function removeById($id): int
+    {
+        return $this->dao->deleteById($id);
+    }
+
+    /**
+     * @param $idList
+     * @return int
+     */
+    public function remoteByIds($idList): int
+    {
+        return $this->dao->deleteBatchIds($idList);
+    }
+
+
+    /**
+     * 根据 ID 更新实体
+     * @param array $entity
+     */
+    public function updateById($entity)
+    {
+        $this->dao->updateById($entity);
+    }
+
+    public function update(array $entity, Wrapper $updateWrapper)
+    {
+        return $this->dao->update($entity, $updateWrapper);
     }
 
 

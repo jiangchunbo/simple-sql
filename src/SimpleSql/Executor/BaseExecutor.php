@@ -57,7 +57,7 @@ abstract class BaseExecutor implements Executor
 
     abstract function doQuery(string $sql, array $parameters);
 
-    public function update(string $sql, array $parameters): int
+    public function update(string $sql, array &$parameters): int
     {
         return $this->doUpdate($sql, $parameters);
     }

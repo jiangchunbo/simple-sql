@@ -29,10 +29,11 @@ interface SqlSession
      * 插入记录
      * @param string $sql
      * @param array  $parameters
+     * @param int    $generatedKey
      * @return int 返回影响行数
      * @throws Exception
      */
-    public function insert(string $sql, array $parameters = []): int;
+    public function insert(string $sql, array $parameters = [], int &$generatedKey = 0): int;
 
     /**
      * 更新记录

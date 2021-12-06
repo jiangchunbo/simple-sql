@@ -155,10 +155,42 @@ class UserService extends BaseService
 
 #### 步骤二
 
-传入 $session 给 Service 进行构造，使用 BaseService 暴露的方法进行单表操作
+传入 $session 给 Service 进行构造，使用 BaseService 暴露的方法进行操作
 
 ```php
 $session = $sqlSessionFactory->openSession(null, 0, false);
 $usersService = new UserService($session);
 $usersService->select();
+```
+
+### 3.2. save
+
+调用 save 方法，传入一个关联数组，方法执行完毕之后，关联数组会得到一个以 'id' 为 key 的值，该值表示实体的自增 id。
+
+```php
+$user = [
+    'username' => 'jcb',
+    'password' => '123456',
+    'password_salt' => '789456'
+];
+$usersService->save($user);
+```
+
+### 3.3. saveBatch
+
+保存多个实体，自增主键类似 save 回传给原数据
+```php
+$entityList = [
+    [
+        'username' => 'jcb',
+        'password' => '123456',
+        'password_salt' => '789456',
+    ],
+    [
+        'username' => 'zx',
+        'password' => '999999',
+        'password_salt' => '88888',
+    ]
+];
+$userService->saveBatch($entityList);
 ```

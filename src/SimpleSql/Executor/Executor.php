@@ -14,7 +14,7 @@ interface Executor
      * @param array  $parameters
      * @return int 影响行数
      */
-    function update(string $sql, array $parameters): int;
+    function update(string $sql, array &$parameters): int;
 
     /**
      * 执行查询语句

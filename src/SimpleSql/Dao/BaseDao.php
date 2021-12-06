@@ -8,6 +8,7 @@ use Tqxxkj\SimpleSql\Core\Conditions\AbstractWrapper;
 use Tqxxkj\SimpleSql\Core\Conditions\Query\Page;
 use Tqxxkj\SimpleSql\Core\Conditions\Query\QueryWrapper;
 use Tqxxkj\SimpleSql\Core\Conditions\Update\UpdateWrapper;
+use Tqxxkj\SimpleSql\Core\Conditions\Wrapper;
 use Tqxxkj\SimpleSql\Session\SqlSession;
 
 class BaseDao
@@ -46,6 +47,7 @@ class BaseDao
 
 
     /**
+     * 插入一条数据
      * @param array $entity
      * @return int
      * @throws Exception
@@ -61,24 +63,37 @@ class BaseDao
             array_push($columns, "`$column`");
             array_push($values, "?");
             if (is_int($value)) {
-                $paramIndexValuePairs[++$paramIndex] = [strval($value), PDO::PARAM_INT];
+                $paramIndexValuePairs[++$paramIndex] = [$value, PDO::PARAM_INT];
             } else {
                 $paramIndexValuePairs[++$paramIndex] = [strval($value), PDO::PARAM_STR];
             }
         }
         $sql = sprintf($sql, $this->tableName, join(',', $columns), join(',', $values));
-        return $this->sqlSession->insert($sql, $paramIndexValuePairs);
+        $generatedKey = 0;
+        $result = $this->sqlSession->insert($sql, $paramIndexValuePairs, $generatedKey);
+        $entity['id'] = $generatedKey;
+        return $result;
     }
 
+    /**
+     * 以 ID 删除
+     * @param $id
+     * @return int
+     */
     public function deleteById($id)
     {
-        $queryWrapper = QueryWrapper::get()->eq('id', $id);
+        $queryWrapper = UpdateWrapper::get()->eq('id', $id);
         $tableName = $this->tableName;
         $where = $this->where($queryWrapper);
-        $sql = "select $queryWrapper->sqlSelect from `$tableName` $where";
+        $sql = "delete from `$this->tableName` $where";
         return $this->sqlSession->delete($sql, $queryWrapper->paramIndexValuePairs);
     }
 
+    /**
+     * 多 ID 删除
+     * @param $idList
+     * @return int
+     */
     public function deleteBatchIds($idList)
     {
         $queryWrapper = QueryWrapper::get()->in('id', $idList);
@@ -105,6 +120,23 @@ class BaseDao
     }
 
     /**
+     * @param array   $entity
+     * @param Wrapper $queryWrapper
+     * @return int
+     * @throws Exception
+     */
+    public function update(array $entity, Wrapper $updateWrapper)
+    {
+        foreach ($entity as $column => $value) {
+            $updateWrapper->set($column, $value);
+        }
+        $sqlSet = $updateWrapper->getSqlSet();
+        $where = $this->where($queryWrapper);
+        $sql = "update `$this->tableName` set `$sqlSet` $where";
+        return $this->sqlSession->update($sql, $queryWrapper->paramIndexValuePairs);
+    }
+
+    /**
      * @param int   $id
      * @param array $columnList
      * @return array
@@ -119,7 +151,7 @@ class BaseDao
         return $this->sqlSession->selectOne($sql, $queryWrapper->paramIndexValuePairs);
     }
 
-    protected function selectBatchIds($idList, $columnList = [])
+    public function selectBatchIds($idList, $columnList = [])
     {
         $queryWrapper = QueryWrapper::get()->select(...$columnList)->in('id', $idList);
         $tableName = $this->tableName;
@@ -171,12 +203,12 @@ class BaseDao
 
     /**
      * 得到 where 子句
-     * @param AbstractWrapper $queryWrapper
+     * @param Wrapper $queryWrapper
      * @return string
      */
-    public function where(AbstractWrapper $queryWrapper)
+    public function where(Wrapper $wrapper)
     {
-        $segment = $queryWrapper->normalSegmentList->segmentList;
+        $segment = $wrapper->getNormal->segmentList;
         return $segment ? 'where ' . join(' ', $segment) : '';
     }
 }

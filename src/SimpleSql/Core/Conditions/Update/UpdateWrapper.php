@@ -7,7 +7,7 @@ use Tqxxkj\SimpleSql\Core\Conditions\AbstractWrapper;
 class UpdateWrapper extends AbstractWrapper
 {
     /**
-     * @var array
+     * @var array 由 id=?, name=? 组成的片段
      */
     public $sqlSet = [];
 
@@ -26,7 +26,15 @@ class UpdateWrapper extends AbstractWrapper
             return $this;
         }
         $this->sqlSet[] = "`{$column}`=?";
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
+    }
+
+    public function getSqlSet(): string
+    {
+        if (sizeof($this->sqlSet) === 0) {
+            return '';
+        }
+        return join(',', $this->sqlSet);
     }
 }
