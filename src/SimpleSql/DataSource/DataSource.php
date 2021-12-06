@@ -1,10 +1,10 @@
 <?php
 
-
 namespace Tqxxkj\SimpleSql\DataSource;
 
+use Tqxxkj\SimpleSql\Sql\Connection;
 
 interface DataSource
 {
-    function getConnection();
+    public function getConnection(): Connection;
 }

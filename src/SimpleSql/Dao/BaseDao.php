@@ -12,7 +12,7 @@ abstract class BaseDao
     /**
      * @var DefaultSqlSession
      */
-    private $sqlSession;
+    private SqlSession $sqlSession;
 
     /**
      * 返回表名称

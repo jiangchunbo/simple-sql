@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tqxxkj\SimpleSql\DataSource;
+namespace Tqxxkj\SimpleSql\Sql;
 
 
 use PDOStatement;
@@ -18,7 +18,7 @@ interface Connection
 
     const TRANSACTION_SERIALIZABLE = 8;
 
-    function prepareStatement(string $sql): PDOStatement;
+    function prepareStatement(string $sql): PreparedStatement;
 
     function setAutoCommit(bool $autoCommit): void;
 

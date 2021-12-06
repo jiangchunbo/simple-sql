@@ -2,37 +2,41 @@
 
 namespace Tqxxkj\SimpleSql\Core\Conditions;
 
+use Tqxxkj\SimpleSql\Core\Conditions\Segments\GroupBySegmentList;
+use Tqxxkj\SimpleSql\Core\Conditions\Segments\HavingSegmentList;
+use Tqxxkj\SimpleSql\Core\Conditions\Segments\NormalSegmentList;
+use Tqxxkj\SimpleSql\Core\Conditions\Segments\OrderBySegmentList;
+
 abstract class AbstractWrapper
 {
-    const ORDER_BY = 1;
-    const GROUP_BY = 2;
-    const HAVING = 3;
+    const ORDER_BY = 'order by';
+    const GROUP_BY = 'group by';
+    const HAVING = 'having';
 
     /**
-     * @var array 查询条件的组成片段, 比如 ['id', '=', '1']
+     * @var NormalSegmentList 查询条件的组成片段, 比如 ['id', '=', '1']
      */
-    public $normalSegmentList = [];
+    public NormalSegmentList $normalSegmentList;
 
     /**
-     * @var array group by 子句 片段
+     * @var GroupBySegmentList group by 子句 片段
      */
-    public $groupBySegmentList = [];
+    public GroupBySegmentList $groupBySegmentList;
 
     /**
-     * @var array having 子句片段
+     * @var HavingSegmentList having 子句片段
      */
-    public $havingSegmentList = [];
+    public HavingSegmentList $havingSegmentList;
 
     /**
-     * @var array order by 子句组成的片段，以空格分隔
+     * @var OrderBySegmentList order by 子句组成的片段，以空格分隔
      */
-    public $orderBySegmentList = [];
-
+    public OrderBySegmentList $orderBySegmentList;
 
     /**
-     * @var array 占位符对应的值
+     * @var array 需要绑定的参数缓存
      */
-    public $toBindValues = [];
+    public array $paramIndexValuePairs = [];
 
     /**
      * @param string $column    列名
@@ -40,10 +44,10 @@ abstract class AbstractWrapper
      * @param bool   $condition 是否需要组装该条件
      * @return $this
      */
-    public function eq($column, $value, $condition = true)
+    public function eq($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '=', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
@@ -54,109 +58,109 @@ abstract class AbstractWrapper
      * @param bool   $condition
      * @return $this
      */
-    public function ne($column, $value, $condition = true)
+    public function ne($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '<>', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * greater than
+     * >
      * @param      $column
      * @param      $value
      * @param bool $condition
      * @return $this
      */
-    public function gt($column, $value, $condition = true)
+    public function gt($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '>', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
 
     /**
-     * greater equal than
+     * >=
      * @param      $column
      * @param      $value
      * @param bool $condition
      * @return $this
      */
-    public function ge($column, $value, $condition = true)
+    public function ge($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '>=', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * 小于
+     * <
      * @param        $column
      * @param        $value
      * @param bool   $condition
      * @return $this
      */
-    public function lt($column, $value, $condition = true)
+    public function lt($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '<', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * 小于等于
+     * <=
      * @param        $column
      * @param        $value
      * @param bool   $condition
      * @return $this
      */
-    public function le($column, $value, $condition = true)
+    public function le($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", '<=', '?');
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * 全模糊查询
+     * '%s%'
      * @param        $column
      * @param        $value
      * @param bool   $condition
      * @return $this
      */
-    public function like($column, $value, $condition = true)
+    public function like($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", 'like', "CONCAT('%',?,'%')");
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * 左模糊查询 %xx
+     * '%s'
      * @param        $column
      * @param        $value
      * @param bool   $condition
      * @return $this
      */
-    public function likeLeft($column, $value, $condition = true)
+    public function likeLeft($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", 'like', "CONCAT('%',?)");
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
     /**
-     * 右模糊
+     * 's%'
      * @param      $column
      * @param      $value
      * @param bool $condition
      * @return $this
      */
-    public function likeRight($column, $value, $condition = true)
+    public function likeRight($column, $value, $condition = true): AbstractWrapper
     {
         $this->doIt($condition, "`{$column}`", 'like', "CONCAT(?,'%')");
-        $this->addBindValues($value);
+        $this->addParamIndexValuePairs($value);
         return $this;
     }
 
@@ -169,7 +173,7 @@ abstract class AbstractWrapper
      * @param bool  $condition
      * @return $this
      */
-    public function in($column, $value_list, $type = \PDO::PARAM_STR, $condition = true)
+    public function in($column, $value_list, $type = \PDO::PARAM_STR, $condition = true): AbstractWrapper
     {
         if (!$value_list) {
             $value_list = [''];
@@ -181,7 +185,7 @@ abstract class AbstractWrapper
             sprintf('(%s)', join(',', array_fill(0, sizeof($value_list), '?')))
         );
         foreach ($value_list as $value) {
-            $this->addBindValues($value);
+            $this->addParamIndexValuePairs($value);
         }
         return $this;
     }
@@ -199,54 +203,50 @@ abstract class AbstractWrapper
     /**
      * 追加排序
      * @param        $column
-     * @param bool   $is_asc
+     * @param bool   $isAsc
      * @param bool   $condition
      * @return AbstractWrapper
      */
-    public function orderBy($column, $is_asc = true, $condition = true)
+    public function orderBy($column, $isAsc = true, $condition = true)
     {
         if (!$column) {
             return $this;
         }
-        $order_mode = $is_asc ? '' : 'desc';
-        $this->doIt($condition, self::ORDER_BY, "`{$column}`", $order_mode);
+        $mode = $isAsc ? 'asc' : 'desc';
+        $this->doIt($condition, self::ORDER_BY, "`{$column}`", $mode);
         return $this;
     }
 
 
     /**
      * 添加片段
-     * @param $condition
-     * @param ...$sql_segments
+     * @param       $condition
+     * @param mixed ...$sqlSegments
      */
-    public function doIt($condition, ...$sql_segments)
+    public function doIt($condition, ...$sqlSegments)
     {
         if (!$condition) {
             return;
         }
-        switch ($sql_segments[0]) {
+        switch ($sqlSegments[0]) {
+            case self::ORDER_BY:
+                $this->orderBySegmentList->addAll($sqlSegments);
+                break;
             case self::GROUP_BY:
-                array_splice($sql_segments, 0, 1); // 第一个是 GROUP_BY 标志, 删除
-                array_push($this->groupBySegmentList, ...$sql_segments);
+                $this->groupBySegmentList->addAll($sqlSegments);
                 break;
             case self::HAVING:
-                break;
-            case self::ORDER_BY:
-                array_splice($sql_segments, 0, 1); // 第一个是 ORDER_BY 标志, 删除
-                array_push($this->orderBySegmentList, ...$sql_segments);
+                $this->havingSegmentList->addAll($sqlSegments);
                 break;
             default: // 默认为 where 子句
-                if ($this->normalSegmentList) {
-                    array_push($this->normalSegmentList, 'and');
-                }
-                array_push($this->normalSegmentList, ...$sql_segments);
+                $this->normalSegmentList->addAll($sqlSegments);
         }
     }
 
 
-    public function addBindValues($value)
+    public function addParamIndexValuePairs($value)
     {
-        $place_holder_index = sizeof($this->toBindValues);
-        $this->toBindValues[$place_holder_index + 1] = is_array($value) ? [$value[0], $value[1]] : $value;
+        $place_holder_index = sizeof($this->paramIndexValuePairs);
+        $this->paramIndexValuePairs[$place_holder_index + 1] = is_array($value) ? [$value[0], $value[1]] : $value;
     }
 }

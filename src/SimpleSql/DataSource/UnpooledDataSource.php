@@ -5,6 +5,8 @@ namespace Tqxxkj\SimpleSql\DataSource;
 use Exception;
 use PDO;
 use Tqxxkj\SimpleSql\Mapping\Environment;
+use Tqxxkj\SimpleSql\Sql\Connection;
+use Tqxxkj\SimpleSql\Sql\MysqlConnection;
 
 /**
  * Class SimpleDataSource
@@ -22,11 +24,11 @@ class UnpooledDataSource implements DataSource
 
 
     /**
-     * 获取一个新的 PDO 连接
-     * @return PDO
+     * 获取一个新的 Connection
+     * @return Connection
      * @throws Exception
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         $pdoBuilder = new PdoBuilder();
         $requiredProperties = ['driver', 'host', 'username', 'password', 'port', 'database'];
@@ -36,6 +38,7 @@ class UnpooledDataSource implements DataSource
             }
             $pdoBuilder->$property(Environment::getProperties()[$property]);
         }
-        return $pdoBuilder->build();
+        $pdo = $pdoBuilder->build();
+        return new MysqlConnection($pdo);
     }
 }

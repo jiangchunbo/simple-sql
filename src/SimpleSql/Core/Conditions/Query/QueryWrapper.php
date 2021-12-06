@@ -9,14 +9,17 @@ class QueryWrapper extends AbstractWrapper
     /**
      * @var string select 子句的内容
      */
-    public $sqlSelect;
+    public string $sqlSelect;
 
     public function __construct()
     {
         $this->sqlSelect = '*';
     }
 
-    public static function get()
+    /**
+     * @return QueryWrapper
+     */
+    public static function get(): QueryWrapper
     {
         return new QueryWrapper();
     }
@@ -24,9 +27,9 @@ class QueryWrapper extends AbstractWrapper
     /**
      * 需要查询的列
      * @param mixed ...$columns
-     * @return $this
+     * @return QueryWrapper
      */
-    public function select(...$columns)
+    public function select(...$columns): QueryWrapper
     {
         if ($columns) {
             $this->sqlSelect = sprintf('%s', join(",", $columns));

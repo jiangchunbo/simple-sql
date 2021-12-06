@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Tqxxkj\SimpleSql\DataSource;
+namespace Tqxxkj\SimpleSql\Sql;
 
 
 use Exception;
@@ -11,26 +11,44 @@ use PDOStatement;
 class MysqlConnection implements Connection
 {
     /**
-     * @var int
+     * @var int 数据库的隔离级别
      */
-    private $transactionIsolationLevel;
+    private int $transactionIsolationLevel;
 
     /**
-     * @var PDO
+     * @var PDO PDO 对象
      */
-    private $pdo;
+    private PDO $pdo;
 
 
-    private $mapTransIsolationNameToValue = [
+    /**
+     * @var array 用于将 MySQL 返回的隔离级别名称转换为 int 值
+     */
+    private array $mapTransIsolationNameToValue = [
         'READ-UNCOMMITTED' => self::TRANSACTION_READ_UNCOMMITTED,
         'READ-COMMITTED' => self::TRANSACTION_READ_COMMITTED,
         'REPEATABLE-READ' => self::TRANSACTION_REPEATABLE_READ,
         'SERIALIZABLE' => self::TRANSACTION_SERIALIZABLE,
     ];
 
+    /**
+     * MysqlConnection constructor.
+     * @param PDO $pdo
+     */
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
+
+    /**
+     * @param string $sql
+     * @return PDOStatement
+     */
     function prepareStatement(string $sql): PDOStatement
     {
-        return $this->pdo->prepare($sql);
+        return $this->pdo->prepare($sql, [
+            PDO::ATTR_CURSOR, PDO::CURSOR_FWDONLY
+        ]);
     }
 
     function setAutoCommit(bool $autoCommit): void

@@ -3,6 +3,7 @@
 namespace Tqxxkj\SimpleSql\Session\Defaults;
 
 use Exception;
+use SqlSession;
 use Tqxxkj\SimpleSql\DataSource\PooledDataSource;
 use Tqxxkj\SimpleSql\Executor\SimpleExecutor;
 use Tqxxkj\SimpleSql\Mapping\Environment;
@@ -12,20 +13,20 @@ class DefaultSqlSessionFactory
 {
 
     /**
-     * @return DefaultSqlSession
+     * @return SqlSession
      * @throws Exception
      */
-    public function openSession()
+    public function openSession(): SqlSession
     {
         return $this->openSessionFromDataSource();
     }
 
     /**
      * 使用一个池化的数据源
-     * @return DefaultSqlSession
+     * @return SqlSession
      * @throws Exception
      */
-    private function openSessionFromDataSource()
+    private function openSessionFromDataSource(): SqlSession
     {
         $id = Environment::getId();
         if (!$id) {

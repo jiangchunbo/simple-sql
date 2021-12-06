@@ -2,43 +2,47 @@
 
 namespace Tqxxkj\SimpleSql\DataSource;
 
+use Exception;
 use PDO;
 use PDOException;
 
 class PdoBuilder
 {
-    private $available_drivers;
+    /**
+     * @var array 缓存的可用驱动
+     */
+    private array $availableDrivers;
 
     /**
-     * @var
+     * @var string
      */
-    private $driver = 'mysql';
+    private string $driver = 'mysql';
 
     /**
-     * @var
+     * @var string
      */
-    private $host = 'localhost';
+    private string $host = 'localhost';
 
     /**
      * @var int
      */
-    private $port = 3306;
+    private int $port = 3306;
 
     /**
      * @var string 默认数据库
      */
-    private $database;
+    private string $database;
 
 
     /**
      * @var string 用户名
      */
-    private $username;
+    private string $username;
 
     /**
      * @var string 密码
      */
-    private $password;
+    private string $password;
 
 
     /**
@@ -46,50 +50,57 @@ class PdoBuilder
      */
     public function __construct()
     {
-        $this->available_drivers = PDO::getAvailableDrivers();
+        $this->availableDrivers = PDO::getAvailableDrivers();
     }
 
+    /**
+     * @param string $driver
+     * @throws Exception
+     */
     public function driver(string $driver)
     {
-        if (!in_array($driver, $this->available_drivers)) {
-            throw new \Exception("找不到驱动: {$driver}");
+        if (!in_array($driver, $this->availableDrivers)) {
+            throw new Exception("找不到驱动: $driver");
         }
         $this->driver = $driver;
     }
 
-    public function host($host)
+    /**
+     * @param string $host
+     */
+    public function host(string $host)
     {
         $this->host = $host;
     }
 
     /**
-     * @param $port
+     * @param int $port
      */
-    public function port($port)
+    public function port(int $port)
     {
         $this->port = $port;
     }
 
     /**
-     * @param $database
+     * @param string $database
      */
-    public function database($database)
+    public function database(string $database)
     {
         $this->database = $database;
     }
 
     /**
-     * @param $username
+     * @param string $username
      */
-    public function username($username)
+    public function username(string $username)
     {
         $this->username = $username;
     }
 
     /**
-     * @param $password
+     * @param string $password
      */
-    public function password($password)
+    public function password(string $password)
     {
         $this->password = $password;
     }
@@ -98,7 +109,7 @@ class PdoBuilder
      * @param array|null $options
      * @return PDO
      */
-    public function build($options = null)
+    public function build($options = null): PDO
     {
         $dsn = "$this->driver:host=$this->host;port=$this->port;dbname=$this->database";
         try {

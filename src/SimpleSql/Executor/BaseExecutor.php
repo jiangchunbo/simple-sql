@@ -8,7 +8,7 @@ use Tqxxkj\SimpleSql\Transaction\Transaction;
 
 abstract class BaseExecutor implements Executor
 {
-    protected $transaction;
+    protected Transaction $transaction;
 
     /**
      * BaseExecutor constructor.

@@ -2,13 +2,14 @@
 
 namespace Tqxxkj\SimpleSql\Transaction;
 
-use PDO;
+
+use Tqxxkj\SimpleSql\Sql\Connection;
 
 interface Transaction
 {
-    function getConnection(): PDO;
+    public function commit(): void;
 
-    function commit(): void;
+    public function getConnection(): Connection;
 
-    function rollback(): void;
+    public function rollback(): void;
 }

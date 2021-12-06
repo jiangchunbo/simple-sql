@@ -6,6 +6,7 @@ namespace Tqxxkj\SimpleSql\DataSource;
 
 use Exception;
 use PDO;
+use Tqxxkj\SimpleSql\Sql\Connection;
 
 /**
  * Class PooledDataSource
@@ -17,12 +18,12 @@ class PooledDataSource implements DataSource
     /**
      * @var UnpooledDataSource
      */
-    private $unpooledDataSource;
+    private UnpooledDataSource $unpooledDataSource;
 
     /**
      * @var array
      */
-    private $idleConnections = [];
+    private array $idleConnections = [];
 
     /**
      * PooledDataSource constructor.
@@ -34,10 +35,10 @@ class PooledDataSource implements DataSource
 
 
     /**
-     * @return PDO
+     * @return Connection
      * @throws Exception
      */
-    function getConnection()
+    public function getConnection(): Connection
     {
         if (sizeof($this->idleConnections) == 0) {
             $connection = $this->unpooledDataSource->getConnection();

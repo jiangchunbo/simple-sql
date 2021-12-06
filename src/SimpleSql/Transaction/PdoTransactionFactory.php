@@ -11,7 +11,7 @@ use Tqxxkj\SimpleSql\DataSource\DataSource;
  * Class TransactionFactory
  * @package Tqxxkj\SimpleSql\Transaction
  */
-class PdoTransactionFactory
+class PdoTransactionFactory implements TransactionFactory
 {
 
 
@@ -24,10 +24,10 @@ class PdoTransactionFactory
 
     /**
      * @param PDO $connection
-     * @return PdoTransaction
+     * @return Transaction
      * @throws Exception
      */
-    public function newTransactionForPDO(PDO $connection)
+    public function newTransactionForPDO(PDO $connection): Transaction
     {
         return new PdoTransaction($connection);
     }
@@ -38,9 +38,9 @@ class PdoTransactionFactory
      * @return PdoTransaction
      * @throws Exception
      */
-    public function newTransactionForDataSource(DataSource $dataSource, bool $autoCommit)
+    public function newTransactionForDataSource(DataSource $dataSource, bool $autoCommit): Transaction
     {
         return new PdoTransaction($dataSource, $autoCommit);
     }
-
 }
+

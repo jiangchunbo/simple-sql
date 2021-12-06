@@ -4,6 +4,7 @@ namespace Tqxxkj\SimpleSql\Executor;
 
 use Exception;
 use PDO;
+use Tqxxkj\SimpleSql\Sql\PreparedStatement;
 use Tqxxkj\SimpleSql\Transaction\Transaction;
 
 class SimpleExecutor extends BaseExecutor
@@ -11,7 +12,7 @@ class SimpleExecutor extends BaseExecutor
     /**
      * @var Transaction
      */
-    protected $transaction;
+    protected Transaction $transaction;
 
     /**
      * SimpleExecutor constructor.
@@ -23,29 +24,18 @@ class SimpleExecutor extends BaseExecutor
     }
 
     /**
-     * @param        $sql
-     * @param mixed  $parameters
+     * @param string $sql
+     * @param array  $parameters
      * @return array
-     * @throws Exception
      */
-    public function doQuery(string $sql, array $parameters = [])
+    public function doQuery(string $sql, array $parameters = []): array
     {
         $connection = $this->transaction->getConnection();
-        $statement = $connection->prepare($sql, [
-            PDO::ATTR_CURSOR, PDO::CURSOR_FWDONLY
-        ]);
+        $statement = $connection->prepareStatement($sql);
         foreach ($parameters as $index => $parameter) {
-            if (is_array($parameter)) {
-                if (sizeof($parameter) != 2) {
-                    throw new Exception("参数个数错误");
-                }
-                $statement->bindValue($index, $parameter[0], $parameter[1]);
-            } else {
-                $statement->bindValue($index, $parameter);
-            }
+            $this->setParameter($statement, $index, $parameter);
         }
-        $statement->execute();
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return $statement->executeQuery();
     }
 
     /**
@@ -56,10 +46,33 @@ class SimpleExecutor extends BaseExecutor
      */
     function doUpdate(string $sql, array $parameters): int
     {
-        $statement = $this->transaction->getConnection()->prepare($sql, $parameters);
-        $statement->execute();
-        return $statement->rowCount();
+        $connection = $this->transaction->getConnection();
+        $statement = $connection->prepareStatement($sql);
+        foreach ($parameters as $index => $parameter) {
+            $this->setParameter($statement, $index, $parameter);
+        }
+        return $statement->executeUpdate();
     }
+
+    /**
+     * 设置参数
+     * @param PreparedStatement $statement
+     * @param int               $index
+     * @param array             $parameter
+     */
+    private function setParameter($statement, $index, $parameter)
+    {
+        switch ($parameter[1]) {
+            default:
+            case PDO::PARAM_STR:
+                $statement->setString($index, $parameter[0]);
+                break;
+            case PDO::PARAM_INT:
+                $statement->setInt($index, $parameter[0]);
+                break;
+        }
+    }
+
 
     function queryCursor($sql, $parameters)
     {

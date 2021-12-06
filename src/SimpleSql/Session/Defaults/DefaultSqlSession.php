@@ -3,14 +3,16 @@
 namespace Tqxxkj\SimpleSql\Session\Defaults;
 
 use Exception;
-use Tqxxkj\SimpleSql\Executor\SimpleExecutor;
+use SqlSession;
+use Tqxxkj\SimpleSql\Executor\Executor;
+use Tqxxkj\SimpleSql\Sql\Connection;
 
-class DefaultSqlSession
+class DefaultSqlSession implements SqlSession
 {
     /**
-     * @var SimpleExecutor
+     * @var Executor
      */
-    private $executor;
+    private Executor $executor;
 
     /**
      * SimpleSqlSession constructor.
@@ -25,10 +27,10 @@ class DefaultSqlSession
     /**
      * @param string $sql
      * @param array  $parameters
-     * @return mixed|null
+     * @return mixed
      * @throws Exception
      */
-    public function selectOne($sql, $parameters)
+    public function selectOne($sql, $parameters): mixed
     {
         $list = $this->selectList($sql, $parameters);
         if (sizeof($list) == 1) {
@@ -40,8 +42,44 @@ class DefaultSqlSession
         }
     }
 
-    public function selectList($sql, $parameters = [])
+    /**
+     * @param       $sql
+     * @param array $parameters
+     * @return array
+     * @throws Exception
+     */
+    public function selectList($sql, $parameters = []): array
     {
         return $this->executor->doQuery($sql, $parameters);
+    }
+
+    public function insert(string $sql, array $parameters): int
+    {
+        return $this->executor->update($sql, $parameters);
+    }
+
+    public function update(string $sql, array $parameters): int
+    {
+        return $this->executor->update($sql, $parameters);
+    }
+
+    public function delete(string $sql, array $parameters): int
+    {
+        return $this->executor->update($sql, $parameters);
+    }
+
+    public function commit(bool $force): void
+    {
+        $this->executor->commit($force);
+    }
+
+    public function rollback(bool $force): void
+    {
+        $this->executor->rollback($force);
+    }
+
+    public function getConnection(): Connection
+    {
+        return $this->executor->getTransaction()->getConnection();
     }
 }

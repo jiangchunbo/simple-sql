@@ -5,7 +5,9 @@ namespace Tqxxkj\SimpleSql\Transaction;
 use Exception;
 use PDO;
 use ReflectionClass;
+use Tqxxkj\SimpleSql\DataSource\Connection;
 use Tqxxkj\SimpleSql\DataSource\DataSource;
+use Tqxxkj\SimpleSql\DataSource\MysqlConnection;
 
 /**
  * Class SimpleTransaction
@@ -14,20 +16,20 @@ use Tqxxkj\SimpleSql\DataSource\DataSource;
 class PdoTransaction implements Transaction
 {
     /**
-     * @var PDO
+     * @var Connection
      */
-    private $connection;
+    private Connection $connection;
 
     /**
      * @var DataSource
      */
-    private $dataSource;
+    private DataSource $dataSource;
 
 
     /**
      * @var bool 是否自动提交事务
      */
-    private $autoCommit;
+    private bool $autoCommit;
 
 
     /**
@@ -51,18 +53,19 @@ class PdoTransaction implements Transaction
     }
 
     /**
-     * 传入一个连接
-     * @param PDO $connection
+     * 传入一个 PDO 连接
+     * @param PDO $pdo
      */
-    public function __constructForPDO(PDO $connection)
+    public function __constructForPDO(PDO $pdo)
     {
+        $connection = new MysqlConnection($pdo);
         $this->connection = $connection;
     }
 
     /**
      * 传入一个数据源
      * @param DataSource $dataSource
-     * @param bool $autoCommit
+     * @param bool       $autoCommit
      */
     public function __constructForDataSource(DataSource $dataSource, bool $autoCommit)
     {
@@ -72,10 +75,10 @@ class PdoTransaction implements Transaction
 
 
     /**
-     * @return PDO
+     * @return Connection
      * @throws Exception
      */
-    public function getConnection(): PDO
+    public function getConnection(): Connection
     {
         if ($this->connection == null) {
             $this->openConnection();
@@ -85,28 +88,28 @@ class PdoTransaction implements Transaction
 
 
     /**
-     * @return PDO
+     * @return Connection
      * @throws Exception
      */
-    public function openConnection()
+    public function openConnection(): Connection
     {
         $this->connection = $this->dataSource->getConnection();
-        if ((bool)$this->connection->getAttribute(PDO::ATTR_AUTOCOMMIT) !== $this->autoCommit) {
-            $this->connection->setAttribute(PDO::ATTR_AUTOCOMMIT, (int)$this->autoCommit);
+        if ($this->connection->getAutoCommit() !== $this->autoCommit) {
+            $this->connection->setAutoCommit($this->autoCommit);
         }
         return $this->connection;
     }
 
-    function commit(): void
+    public function commit(): void
     {
-        if ($this->connection != null && !$this->connection->getAttribute(PDO::ATTR_AUTOCOMMIT)) {
+        if ($this->connection != null && !$this->connection->getAutoCommit()) {
             $this->connection->commit();
         }
     }
 
-    function rollback(): void
+    public function rollback(): void
     {
-        if ($this->connection != null && !$this->connection->getAttribute(PDO::ATTR_AUTOCOMMIT)) {
+        if ($this->connection != null && !$this->connection->getAutoCommit()) {
             $this->connection->rollBack();
         }
     }
