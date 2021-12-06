@@ -16,27 +16,27 @@ abstract class AbstractWrapper
     /**
      * @var NormalSegmentList 查询条件的组成片段, 比如 ['id', '=', '1']
      */
-    public NormalSegmentList $normalSegmentList;
+    public $normalSegmentList;
 
     /**
      * @var GroupBySegmentList group by 子句 片段
      */
-    public GroupBySegmentList $groupBySegmentList;
+    public $groupBySegmentList;
 
     /**
      * @var HavingSegmentList having 子句片段
      */
-    public HavingSegmentList $havingSegmentList;
+    public $havingSegmentList;
 
     /**
      * @var OrderBySegmentList order by 子句组成的片段，以空格分隔
      */
-    public OrderBySegmentList $orderBySegmentList;
+    public $orderBySegmentList;
 
     /**
      * @var array 需要绑定的参数缓存
      */
-    public array $paramIndexValuePairs = [];
+    public $paramIndexValuePairs = [];
 
     /**
      * @param string $column    列名

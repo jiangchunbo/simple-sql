@@ -5,9 +5,9 @@ namespace Tqxxkj\SimpleSql\Transaction;
 use Exception;
 use PDO;
 use ReflectionClass;
-use Tqxxkj\SimpleSql\DataSource\Connection;
 use Tqxxkj\SimpleSql\DataSource\DataSource;
-use Tqxxkj\SimpleSql\DataSource\MysqlConnection;
+use Tqxxkj\SimpleSql\Sql\Connection;
+use Tqxxkj\SimpleSql\Sql\Mysql\MysqlConnection;
 
 /**
  * Class SimpleTransaction
@@ -18,18 +18,24 @@ class PdoTransaction implements Transaction
     /**
      * @var Connection
      */
-    private Connection $connection;
+    private $connection;
 
     /**
      * @var DataSource
      */
-    private DataSource $dataSource;
+    private $dataSource;
+
+
+    /**
+     * @var int
+     */
+    private $level;
 
 
     /**
      * @var bool 是否自动提交事务
      */
-    private bool $autoCommit;
+    private $autoCommit;
 
 
     /**
@@ -64,13 +70,15 @@ class PdoTransaction implements Transaction
 
     /**
      * 传入一个数据源
-     * @param DataSource $dataSource
+     * @param DataSource $dataSource 数据源
+     * @param int        $level      传 null 标识使用默认隔离级别
      * @param bool       $autoCommit
      */
-    public function __constructForDataSource(DataSource $dataSource, bool $autoCommit)
+    public function __constructForDataSource(DataSource $dataSource, int $level, bool $autoCommit)
     {
         $this->dataSource = $dataSource;
         $this->autoCommit = $autoCommit;
+        $this->level = $level;
     }
 
 
@@ -88,6 +96,7 @@ class PdoTransaction implements Transaction
 
 
     /**
+     * 打开一个连接并设置响应的自动提交与事务隔离级别
      * @return Connection
      * @throws Exception
      */
@@ -96,6 +105,9 @@ class PdoTransaction implements Transaction
         $this->connection = $this->dataSource->getConnection();
         if ($this->connection->getAutoCommit() !== $this->autoCommit) {
             $this->connection->setAutoCommit($this->autoCommit);
+        }
+        if (isset($this->level)) {
+            $this->connection->setTransactionIsolation($this->level);
         }
         return $this->connection;
     }

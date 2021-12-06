@@ -3,10 +3,9 @@
 namespace Tqxxkj\SimpleSql\DataSource;
 
 use Exception;
-use PDO;
 use Tqxxkj\SimpleSql\Mapping\Environment;
 use Tqxxkj\SimpleSql\Sql\Connection;
-use Tqxxkj\SimpleSql\Sql\MysqlConnection;
+use Tqxxkj\SimpleSql\Sql\Mysql\MysqlConnection;
 
 /**
  * Class SimpleDataSource
@@ -15,11 +14,30 @@ use Tqxxkj\SimpleSql\Sql\MysqlConnection;
  */
 class UnpooledDataSource implements DataSource
 {
+    private $driver;
+
+    private $host;
+
+    private $username;
+
+    private $password;
+
+    private $port;
+
+    private $database;
+
     /**
-     * SimpleDataSource constructor.
+     * UnpooledDataSource constructor.
+     * @param $properties
      */
-    public function __construct()
+    public function __construct($properties)
     {
+        $this->driver = $properties['driver'];
+        $this->host = $properties['host'];
+        $this->username = $properties['username'];
+        $this->password = $properties['password'];
+        $this->port = $properties['port'];
+        $this->database = $properties['database'];
     }
 
 
@@ -31,13 +49,12 @@ class UnpooledDataSource implements DataSource
     public function getConnection(): Connection
     {
         $pdoBuilder = new PdoBuilder();
-        $requiredProperties = ['driver', 'host', 'username', 'password', 'port', 'database'];
-        foreach ($requiredProperties as $property) {
-            if (!isset(Environment::getProperties()[$property])) {
-                throw new Exception("未设置环境属性: $property");
-            }
-            $pdoBuilder->$property(Environment::getProperties()[$property]);
-        }
+        $pdoBuilder->driver($this->driver);
+        $pdoBuilder->host($this->host);
+        $pdoBuilder->port($this->port);
+        $pdoBuilder->database($this->database);
+        $pdoBuilder->username($this->username);
+        $pdoBuilder->password($this->password);
         $pdo = $pdoBuilder->build();
         return new MysqlConnection($pdo);
     }

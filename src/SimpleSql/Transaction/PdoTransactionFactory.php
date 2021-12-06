@@ -34,13 +34,14 @@ class PdoTransactionFactory implements TransactionFactory
 
     /**
      * @param DataSource $dataSource
+     * @param int        $level
      * @param bool       $autoCommit
      * @return PdoTransaction
      * @throws Exception
      */
-    public function newTransactionForDataSource(DataSource $dataSource, bool $autoCommit): Transaction
+    public function newTransactionForDataSource(DataSource $dataSource, int $level, bool $autoCommit): Transaction
     {
-        return new PdoTransaction($dataSource, $autoCommit);
+        return new PdoTransaction($dataSource, $level, $autoCommit);
     }
 }
 

@@ -1,16 +1,15 @@
 <?php
 
-
 namespace Tqxxkj\SimpleSql\Core\Conditions\Update;
 
-use Tq\Meal\Model\Common\AbstractWrapper;
+use Tqxxkj\SimpleSql\Core\Conditions\AbstractWrapper;
 
 class UpdateWrapper extends AbstractWrapper
 {
     /**
      * @var array
      */
-    public array $sqlSet = [];
+    public $sqlSet = [];
 
     /**
      * @return UpdateWrapper

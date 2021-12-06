@@ -11,38 +11,38 @@ class PdoBuilder
     /**
      * @var array 缓存的可用驱动
      */
-    private array $availableDrivers;
+    private $availableDrivers;
 
     /**
      * @var string
      */
-    private string $driver = 'mysql';
+    private $driver = 'mysql';
 
     /**
      * @var string
      */
-    private string $host = 'localhost';
+    private $host = 'localhost';
 
     /**
      * @var int
      */
-    private int $port = 3306;
+    private $port = 3306;
 
     /**
      * @var string 默认数据库
      */
-    private string $database;
+    private $database;
 
 
     /**
      * @var string 用户名
      */
-    private string $username;
+    private $username;
 
     /**
      * @var string 密码
      */
-    private string $password;
+    private $password;
 
 
     /**

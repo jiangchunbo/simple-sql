@@ -18,8 +18,9 @@ interface TransactionFactory
 
     /**
      * @param DataSource $dataSource 数据源
+     * @param int        $level
      * @param bool       $autoCommit 是否自动提交
      * @return Transaction
      */
-    public function newTransactionForDataSource(DataSource $dataSource, bool $autoCommit): Transaction;
+    public function newTransactionForDataSource(DataSource $dataSource, int $level, bool $autoCommit): Transaction;
 }

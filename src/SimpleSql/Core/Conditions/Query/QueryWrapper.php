@@ -9,7 +9,7 @@ class QueryWrapper extends AbstractWrapper
     /**
      * @var string select 子句的内容
      */
-    public string $sqlSelect;
+    public $sqlSelect;
 
     public function __construct()
     {

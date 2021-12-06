@@ -1,35 +1,42 @@
 <?php
 
-
-namespace Tqxxkj\SimpleSql\Sql;
-
+namespace Tqxxkj\SimpleSql\Sql\Mysql;
 
 use Exception;
 use PDO;
-use PDOStatement;
+use Tqxxkj\SimpleSql\Sql\Connection;
+use Tqxxkj\SimpleSql\Sql\PreparedStatement;
 
 class MysqlConnection implements Connection
 {
     /**
      * @var int 数据库的隔离级别
      */
-    private int $transactionIsolationLevel;
+    private $transactionIsolationLevel;
 
     /**
      * @var PDO PDO 对象
      */
-    private PDO $pdo;
+    private $pdo;
 
 
     /**
      * @var array 用于将 MySQL 返回的隔离级别名称转换为 int 值
      */
-    private array $mapTransIsolationNameToValue = [
+    private $mapTransIsolationNameToValue = [
         'READ-UNCOMMITTED' => self::TRANSACTION_READ_UNCOMMITTED,
         'READ-COMMITTED' => self::TRANSACTION_READ_COMMITTED,
         'REPEATABLE-READ' => self::TRANSACTION_REPEATABLE_READ,
         'SERIALIZABLE' => self::TRANSACTION_SERIALIZABLE,
     ];
+
+    /**
+     * @return PDO
+     */
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 
     /**
      * MysqlConnection constructor.
@@ -42,13 +49,14 @@ class MysqlConnection implements Connection
 
     /**
      * @param string $sql
-     * @return PDOStatement
+     * @return PreparedStatement
      */
-    function prepareStatement(string $sql): PDOStatement
+    function prepareStatement(string $sql): PreparedStatement
     {
-        return $this->pdo->prepare($sql, [
+        $pdoStatement = $this->pdo->prepare($sql, [
             PDO::ATTR_CURSOR, PDO::CURSOR_FWDONLY
         ]);
+        return new MysqlPreparedStatement($this, $pdoStatement);
     }
 
     function setAutoCommit(bool $autoCommit): void
@@ -84,14 +92,13 @@ class MysqlConnection implements Connection
             case self::TRANSACTION_READ_COMMITTED:
                 $this->pdo->query('set session transaction isolation level read committed');
                 break;
+            default:
             case self::TRANSACTION_REPEATABLE_READ:
                 $this->pdo->query('set session transaction isolation level repeatable read');
                 break;
             case self::TRANSACTION_SERIALIZABLE:
                 $this->pdo->query('set session transaction isolation level serializable');
                 break;
-            default:
-                throw new Exception("参数错误");
         }
         $this->transactionIsolationLevel = $level;
     }

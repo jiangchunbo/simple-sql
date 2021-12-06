@@ -1,7 +1,6 @@
 <?php
 
-
-namespace Tq\Meal\Model\Common;
+namespace Tqxxkj\SimpleSql\Core\Conditions\Query;
 
 class Page
 {
@@ -18,7 +17,8 @@ class Page
         $this->limit = $limit;
     }
 
-    public static function emptyPage() {
+    public static function emptyPage()
+    {
         return (new Page())->setRecords([])->setTotal(0);
     }
 
@@ -31,7 +31,7 @@ class Page
     }
 
     /**
-     * @param  mixed  $records
+     * @param mixed $records
      * @return Page
      */
     public function setRecords($records)
@@ -49,7 +49,7 @@ class Page
     }
 
     /**
-     * @param  mixed  $offset
+     * @param mixed $offset
      */
     public function setOffset($offset)
     {
@@ -65,7 +65,7 @@ class Page
     }
 
     /**
-     * @param  mixed  $limit
+     * @param mixed $limit
      */
     public function setLimit($limit)
     {
@@ -81,7 +81,7 @@ class Page
     }
 
     /**
-     * @param  mixed  $total
+     * @param mixed $total
      * @return Page
      */
     public function setTotal($total)

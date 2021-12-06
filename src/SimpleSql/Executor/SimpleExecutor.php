@@ -12,7 +12,7 @@ class SimpleExecutor extends BaseExecutor
     /**
      * @var Transaction
      */
-    protected Transaction $transaction;
+    protected $transaction;
 
     /**
      * SimpleExecutor constructor.
@@ -44,14 +44,16 @@ class SimpleExecutor extends BaseExecutor
      * @return int 返回影响行数
      * @throws Exception
      */
-    function doUpdate(string $sql, array $parameters): int
+    function doUpdate(string $sql, array &$parameters): int
     {
         $connection = $this->transaction->getConnection();
         $statement = $connection->prepareStatement($sql);
         foreach ($parameters as $index => $parameter) {
             $this->setParameter($statement, $index, $parameter);
         }
-        return $statement->executeUpdate();
+        $rowCount = $statement->executeUpdate();
+        $parameters['id'] = $statement->getGeneratedKeys()[0];
+        return $rowCount;
     }
 
     /**

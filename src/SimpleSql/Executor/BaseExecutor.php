@@ -8,7 +8,10 @@ use Tqxxkj\SimpleSql\Transaction\Transaction;
 
 abstract class BaseExecutor implements Executor
 {
-    protected Transaction $transaction;
+    /**
+     * @var Transaction
+     */
+    protected $transaction;
 
     /**
      * BaseExecutor constructor.
@@ -40,7 +43,7 @@ abstract class BaseExecutor implements Executor
     }
 
 
-    public function query($sql, $parameters): array
+    public function query(string $sql, array $parameters): array
     {
         $list = $this->queryFromDatabase($sql, $parameters);
         return $list;
@@ -59,5 +62,5 @@ abstract class BaseExecutor implements Executor
         return $this->doUpdate($sql, $parameters);
     }
 
-    abstract function doUpdate(string $sql, array $parameters);
+    abstract function doUpdate(string $sql, array &$parameters);
 }

@@ -1,23 +1,19 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
 
-namespace Tqxxkj\SimpleSql\Tests;
+require_once __DIR__ . '/../src/SimpleSql/Dao/BaseService.php';
 
 use Tqxxkj\SimpleSql\Mapping\Environment;
 use Tqxxkj\SimpleSql\Session\Defaults\DefaultSqlSessionFactory;
+use Tqxxkj\SimpleSql\Tests\UserService;
 
-require_once __DIR__ . '/../vendor/autoload.php';
 
-Environment::setProperties('localhost:test', 'mysql', 'localhost', '3306', 'root', 'JINGjiuBUchi', 'test');
-
-$sqlSessionFactory = new DefaultSqlSessionFactory();
-
+$environment = new Environment();
+$environment->setProperties('localhost:test', 'mysql', 'localhost', '3306', 'root', 'JINGjiuBUchi', 'test');
+$sqlSessionFactory = new DefaultSqlSessionFactory($environment);
 /**
  * 得到一个 Session
  */
-$session = $sqlSessionFactory->openSession();
-
-$usersDao = new Users($session);
-
-$user = $usersDao->selectById0(1);
-
-var_dump($user);
+$session = $sqlSessionFactory->openSession(null, 0, false);
+$usersService = new UserService($session);
+$usersService->insertMore();

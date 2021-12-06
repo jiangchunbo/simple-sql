@@ -8,47 +8,60 @@ use Tqxxkj\SimpleSql\Transaction\PdoTransactionFactory;
 
 class Environment
 {
-    private static $id;
+    /**
+     * @var string 环境 ID
+     */
+    private $id;
 
     /**
      * @var DataSource
      */
-    private static $dataSource;
+    private $dataSource;
 
     /**
      * @var PdoTransactionFactory
      */
-    private static $transactionFactory;
+    private $transactionFactory;
 
     /**
      * @var array
      */
-    private static $properties;
+    private $properties;
 
     /**
      * @return mixed
      */
-    public static function getId()
+    public function getId()
     {
-        return self::$id;
+        return $this->id;
     }
 
-    public static function setProperties($id, $driver, $host, $port, $username, $password, $database)
+    /**
+     * @param $id
+     * @param $driver
+     * @param $host
+     * @param $port
+     * @param $username
+     * @param $password
+     * @param $database
+     */
+    public function setProperties($id, $driver, $host, $port, $username, $password, $database)
     {
-        self::$id = $id;
-        self::$properties['driver'] = $driver;
-        self::$properties['host'] = $host;
-        self::$properties['port'] = $port;
-        self::$properties['username'] = $username;
-        self::$properties['password'] = $password;
-        self::$properties['database'] = $database;
+        $this->id = $id;
+        $this->properties['id'] = $id;
+        $this->properties['driver'] = $driver;
+        $this->properties['host'] = $host;
+        $this->properties['port'] = $port;
+        $this->properties['username'] = $username;
+        $this->properties['password'] = $password;
+        $this->properties['database'] = $database;
     }
 
     /**
      * @return array
      */
-    public static function getProperties()
+    public function getProperties(): array
     {
-        return self::$properties;
+        return $this->properties;
     }
 }

@@ -18,19 +18,19 @@ class PooledDataSource implements DataSource
     /**
      * @var UnpooledDataSource
      */
-    private UnpooledDataSource $unpooledDataSource;
+    private $unpooledDataSource;
 
     /**
      * @var array
      */
-    private array $idleConnections = [];
+    private $idleConnections = [];
 
     /**
      * PooledDataSource constructor.
      */
-    public function __construct()
+    public function __construct($properties)
     {
-        $this->unpooledDataSource = new UnpooledDataSource();
+        $this->unpooledDataSource = new UnpooledDataSource($properties);
     }
 
 

@@ -4,7 +4,7 @@
 namespace Tqxxkj\SimpleSql\Sql;
 
 
-use PDOStatement;
+use PDO;
 
 interface Connection
 {
@@ -31,4 +31,6 @@ interface Connection
     function setTransactionIsolation(int $level): void;
 
     function getTransactionIsolation(): int;
+
+    function getPdo(): PDO;
 }
