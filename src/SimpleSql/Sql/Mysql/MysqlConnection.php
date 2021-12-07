@@ -4,21 +4,15 @@ namespace Tqxxkj\SimpleSql\Sql\Mysql;
 
 use Exception;
 use PDO;
-use Tqxxkj\SimpleSql\Sql\Connection;
+use Tqxxkj\SimpleSql\Sql\Pdo\PdoConnection;
 use Tqxxkj\SimpleSql\Sql\PreparedStatement;
 
-class MysqlConnection implements Connection
+class MysqlConnection extends PdoConnection
 {
     /**
      * @var int 数据库的隔离级别
      */
     private $transactionIsolationLevel;
-
-    /**
-     * @var PDO PDO 对象
-     */
-    private $pdo;
-
 
     /**
      * @var array 用于将 MySQL 返回的隔离级别名称转换为 int 值
@@ -44,7 +38,7 @@ class MysqlConnection implements Connection
      */
     public function __construct(PDO $pdo)
     {
-        $this->pdo = $pdo;
+        parent::__construct($pdo);
     }
 
     /**
@@ -57,26 +51,6 @@ class MysqlConnection implements Connection
             PDO::ATTR_CURSOR, PDO::CURSOR_FWDONLY
         ]);
         return new MysqlPreparedStatement($this, $pdoStatement);
-    }
-
-    function setAutoCommit(bool $autoCommit): void
-    {
-        $this->pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, (int)$autoCommit);
-    }
-
-    function getAutoCommit(): bool
-    {
-        return (bool)$this->pdo->getAttribute(PDO::ATTR_AUTOCOMMIT);
-    }
-
-    function commit(): void
-    {
-        $this->pdo->commit();
-    }
-
-    function rollback(): void
-    {
-        $this->pdo->rollBack();
     }
 
     /**

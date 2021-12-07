@@ -2,6 +2,7 @@
 
 namespace Tqxxkj\SimpleSql\Core\Conditions;
 
+use PDO;
 use Tqxxkj\SimpleSql\Core\Conditions\Segments\MergeSegments;
 
 abstract class AbstractWrapper extends Wrapper
@@ -9,37 +10,43 @@ abstract class AbstractWrapper extends Wrapper
     /**
      * @var MergeSegments
      */
-    private $express;
+    private $expression;
+
+
+    /**
+     * @var int
+     */
+    private $paramNameSeq;
 
     /**
      * @var array 需要绑定的参数缓存
      */
-    public $paramIndexValuePairs = [];
+    public $paramNameValuePairs = [];
 
     /**
      * AbstractWrapper constructor.
      */
     public function __construct()
     {
-        $this->express = new MergeSegments();
+        $this->expression = new MergeSegments();
     }
 
 
     /**
+     * 等于 equal
      * @param string $column    列名
-     * @param mixed  $value     值，单个值，或者数组[值，PDO 类型]
+     * @param mixed  $value     值
      * @param bool   $condition 是否需要组装该条件
      * @return $this
      */
     public function eq($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '=', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '=', $value);
         return $this;
     }
 
     /**
-     * 不等于
+     * 不等于 not equal
      * @param        $column
      * @param        $value
      * @param bool   $condition
@@ -47,13 +54,12 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function ne($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '<>', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '<>', $value);
         return $this;
     }
 
     /**
-     * >
+     * 大于 greater than
      * @param      $column
      * @param      $value
      * @param bool $condition
@@ -61,14 +67,13 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function gt($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '>', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '>', $value);
         return $this;
     }
 
 
     /**
-     * >=
+     * 大于等于 greater equal
      * @param      $column
      * @param      $value
      * @param bool $condition
@@ -76,13 +81,12 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function ge($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '>=', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '>=', $value);
         return $this;
     }
 
     /**
-     * <
+     * 小于 less than
      * @param        $column
      * @param        $value
      * @param bool   $condition
@@ -90,13 +94,12 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function lt($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '<', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '<', $value);
         return $this;
     }
 
     /**
-     * <=
+     * 小于等于 less equal
      * @param        $column
      * @param        $value
      * @param bool   $condition
@@ -104,13 +107,12 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function le($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", '<=', '?');
-        $this->addParamIndexValuePairs($value);
+        $this->addCondition($condition, "`$column`", '<=', $value);
         return $this;
     }
 
     /**
-     * '%s%'
+     * 全模糊
      * @param        $column
      * @param        $value
      * @param bool   $condition
@@ -118,13 +120,29 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function like($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", 'like', "CONCAT('%',?,'%')");
-        $this->addParamIndexValuePairs($value);
+        if ($condition) {
+            $this->appendSqlSegments("`$column`", 'like', "CONCAT('%'," . $this->formatParam($value) . ",'%')");
+        }
         return $this;
     }
 
     /**
-     * '%s'
+     * 模糊取反
+     * @param      $column
+     * @param      $value
+     * @param bool $condition
+     * @return AbstractWrapper
+     */
+    public function notLike($column, $value, $condition = true): AbstractWrapper
+    {
+        if ($condition) {
+            $this->appendSqlSegments("`$column`", 'not like', "CONCAT('%'," . $this->formatParam($value) . ",'%')");
+        }
+        return $this;
+    }
+
+    /**
+     * 左模糊
      * @param        $column
      * @param        $value
      * @param bool   $condition
@@ -132,13 +150,14 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function likeLeft($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", 'like', "CONCAT('%',?)");
-        $this->addParamIndexValuePairs($value);
+        if ($condition) {
+            $this->appendSqlSegments("`$column`", 'like', "CONCAT('%'," . $this->formatParam($value) . ")");
+        }
         return $this;
     }
 
     /**
-     * 's%'
+     * 右模糊
      * @param      $column
      * @param      $value
      * @param bool $condition
@@ -146,8 +165,9 @@ abstract class AbstractWrapper extends Wrapper
      */
     public function likeRight($column, $value, $condition = true): AbstractWrapper
     {
-        $this->addCondition($condition, "`$column`", 'like', "CONCAT(?,'%')");
-        $this->addParamIndexValuePairs($value);
+        if ($condition) {
+            $this->appendSqlSegments("`$column`", 'like', "CONCAT(" . $this->formatParam($value) . ",'%')");
+        }
         return $this;
     }
 
@@ -155,72 +175,134 @@ abstract class AbstractWrapper extends Wrapper
     /**
      * in 查询
      * @param       $column
-     * @param       $value_list
+     * @param array $valueList
      * @param bool  $condition
      * @return $this
      */
-    public function in($column, $value_list, $condition = true): AbstractWrapper
+    public function in($column, $valueList, $condition = true): AbstractWrapper
     {
-        if (!$value_list) {
-            return $this;
-        }
-        $this->addCondition(
-            $condition,
-            "`$column`",
-            'in',
-            sprintf('(%s)', join(',', array_fill(0, sizeof($value_list), '?')))
-        );
-        foreach ($value_list as $value) {
-            $this->addParamIndexValuePairs($value);
+        if ($valueList && $condition) {
+            $inList = [];
+            foreach ($valueList as $value) {
+                $inList[] = $this->formatParam($value);
+            }
+            $this->appendSqlSegments(
+                "`$column`",
+                'in',
+                '(' . join(',', $inList) . ')'
+            );
         }
         return $this;
     }
 
-    public function groupBy(...$columns): AbstractWrapper
+    /**
+     * 分组
+     * @param array $columnList
+     * @param bool  $condition
+     * @return $this
+     */
+    public function groupBy($columnList = [], $condition = true): AbstractWrapper
     {
-        if (!$columns) {
-            return $this;
+        if ($columnList && $condition) {
+            if (!is_array($columnList)) {
+                $columnList = [$columnList];
+            }
+            $this->appendSqlSegments('group by', ...$columnList);
         }
-        $this->addCondition(true, 'group by', ...$columns);
         return $this;
     }
 
 
     /**
-     * 追加排序
-     * @param        $column
+     * 排序
+     * @param string $column
      * @param bool   $isAsc
      * @param bool   $condition
      * @return AbstractWrapper
      */
-    public function orderBy($column, $isAsc = true, $condition = true): AbstractWrapper
+    public function orderBy(string $column, $isAsc = true, $condition = true): AbstractWrapper
     {
-        if (!$column) {
-            return $this;
+        if ($column && $condition) {
+            $mode = $isAsc ? 'asc' : 'desc';
+            $this->appendSqlSegments('order by', "`$column`", $mode);
         }
-        $mode = $isAsc ? 'asc' : 'desc';
-        $this->addCondition($condition, 'order by', "`$column`", $mode);
         return $this;
     }
 
+    /**
+     * 支持 count(*) > {0} and 'name'={1} 传入
+     * @param string $sqlHaving
+     * @param array  $params
+     * @param bool   $condition
+     * @return $this
+     */
+    public function having(string $sqlHaving, array $params = [], $condition = true): AbstractWrapper
+    {
+        if ($sqlHaving && $condition) {
+            foreach ($params as $i => $param) {
+                $target = '{' . $i . '}';
+                $sqlHaving = str_replace($target, $this->formatParam($param), $sqlHaving);
+            }
+            $this->appendSqlSegments('having', $sqlHaving);
+        }
+        return $this;
+    }
+
+    /**
+     * 参数名称默认为 MPGENVAL + 自增数
+     * @param $param
+     * @return string 返回特定的参数注入占位符, ew.paramNameValuePairs.MPGENVAL 自增数
+     */
+    public function formatParam($param): string
+    {
+        ++$this->paramNameSeq;
+        $genParamName = "MPGENVAL$this->paramNameSeq";
+        $paramStr = ":ew_paramNameValuePairs_$genParamName";
+        if (is_int($param)) {
+            $this->paramNameValuePairs[$paramStr] = [$param, PDO::PARAM_INT];
+        } else {
+            $this->paramNameValuePairs[$paramStr] = [$param, PDO::PARAM_STR];
+        }
+        return $paramStr;
+    }
 
     /**
      * 添加片段
-     * @param       $condition
-     * @param mixed ...$sqlSegments
+     * @param bool   $condition
+     * @param string $column
+     * @param string $sqlKeyword
+     * @param mixed  $value
      */
-    public function addCondition($condition, ...$sqlSegments)
+    public function addCondition($condition, $column, $sqlKeyword, $value)
     {
         if (!$condition) {
             return;
         }
-        $this->express->add(...$sqlSegments);
+        $this->appendSqlSegments($column, $sqlKeyword, $this->formatParam($value));
+    }
+
+    public function appendSqlSegments(...$sqlSegments)
+    {
+        $this->expression->add(...$sqlSegments);
     }
 
 
     public function addParamIndexValuePairs($value)
     {
-        $place_holder_index = sizeof($this->paramIndexValuePairs);
-        $this->paramIndexValuePairs[$place_holder_index + 1] = is_array($value) ? [$value[0], $value[1]] : $value;
+//        $place_holder_index = sizeof($this->para);
+//        $this->paramIndexValuePairs[$place_holder_index + 1] = $value;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSqlSegment(): string
+    {
+        return $this->expression->getSqlSegment();
+    }
+
+    public function getExpression(): MergeSegments
+    {
+        return $this->expression;
     }
 }

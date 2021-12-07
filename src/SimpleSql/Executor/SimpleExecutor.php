@@ -2,6 +2,7 @@
 
 namespace Tqxxkj\SimpleSql\Executor;
 
+use Cassandra\Varint;
 use Exception;
 use PDO;
 use Tqxxkj\SimpleSql\Sql\PreparedStatement;
@@ -58,28 +59,28 @@ class SimpleExecutor extends BaseExecutor
         return $rowCount;
     }
 
+    function queryCursor($sql, $parameters)
+    {
+        // TODO: Implement queryCursor() method.
+    }
+
+
     /**
      * 设置参数
      * @param PreparedStatement $statement
-     * @param int               $index
+     * @param                   $key
      * @param array             $parameter
      */
-    private function setParameter($statement, $index, $parameter)
+    private function setParameter($statement, $key, $parameter)
     {
         switch ($parameter[1]) {
             default:
             case PDO::PARAM_STR:
-                $statement->setString($index, $parameter[0]);
+                $statement->setString($key, $parameter[0]);
                 break;
             case PDO::PARAM_INT:
-                $statement->setInt($index, $parameter[0]);
+                $statement->setInt($key, $parameter[0]);
                 break;
         }
-    }
-
-
-    function queryCursor($sql, $parameters)
-    {
-        // TODO: Implement queryCursor() method.
     }
 }

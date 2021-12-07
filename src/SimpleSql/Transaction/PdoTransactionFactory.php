@@ -13,8 +13,6 @@ use Tqxxkj\SimpleSql\DataSource\DataSource;
  */
 class PdoTransactionFactory implements TransactionFactory
 {
-
-
     /**
      * TransactionFactory constructor.
      */

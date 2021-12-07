@@ -4,6 +4,7 @@ namespace Tqxxkj\SimpleSql\Dao;
 
 use Exception;
 use Tqxxkj\SimpleSql\Core\Conditions\AbstractWrapper;
+use Tqxxkj\SimpleSql\Core\Conditions\Query\QueryWrapper;
 use Tqxxkj\SimpleSql\Core\Conditions\Wrapper;
 
 abstract class BaseService
@@ -83,16 +84,48 @@ abstract class BaseService
 
 
     /**
+     * @param QueryWrapper|null $queryWrapper
+     * @return array
+     * @throws Exception
+     */
+    public function getOne(QueryWrapper $queryWrapper = null)
+    {
+        return $this->dao->selectOne($queryWrapper);
+    }
+
+    /**
      * @param $id
+     * @return array
      * @throws Exception
      */
     public function getById($id)
     {
-        $this->dao->selectById($id);
+        return $this->dao->selectById($id);
     }
 
+    /**
+     * @param $idList
+     * @return array
+     * @throws Exception
+     */
     public function listByIds($idList)
     {
-        $this->dao->selectBatchIds($idList);
+        return $this->dao->selectBatchIds($idList);
+    }
+
+    /**
+     * @param QueryWrapper $queryWrapper
+     * @return int
+     * @throws Exception
+     */
+    public function count(QueryWrapper $queryWrapper = null)
+    {
+        return $this->dao->selectCount($queryWrapper);
+    }
+
+
+    public function list(QueryWrapper $queryWrapper = null)
+    {
+        return $this->dao->selectList($queryWrapper);
     }
 }

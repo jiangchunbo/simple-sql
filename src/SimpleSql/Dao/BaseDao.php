@@ -103,6 +103,11 @@ class BaseDao
         return $this->sqlSession->delete($sql, $queryWrapper->paramIndexValuePairs);
     }
 
+    /**
+     * @param $entity
+     * @return int
+     * @throws Exception
+     */
     public function updateById($entity)
     {
         $updateWrapper = UpdateWrapper::get();
@@ -137,54 +142,97 @@ class BaseDao
     }
 
     /**
-     * @param int   $id
-     * @param array $columnList
+     * 根据主键 ID 获取一条记录
+     * @param int $id
      * @return array
      * @throws Exception
      */
-    public function selectById($id, $columnList = []): array
+    public function selectById($id): array
     {
-        $queryWrapper = QueryWrapper::get()->select(...$columnList)->eq('id', $id);
-        $tableName = $this->tableName;
-        $where = $this->where($queryWrapper);
-        $sql = "select $queryWrapper->sqlSelect from `$tableName` $where";
-        return $this->sqlSession->selectOne($sql, $queryWrapper->paramIndexValuePairs);
+        $sql = "select * from `$this->tableName` where `id`=?";
+        return $this->sqlSession->selectOne($sql, [
+            1 => [$id, PDO::PARAM_INT]
+        ]);
     }
 
-    public function selectBatchIds($idList, $columnList = [])
+    /**
+     * 根据多个主键 ID 获取一条记录
+     * @param array $idList id 列表
+     * @return array
+     * @throws Exception
+     */
+    public function selectBatchIds($idList)
     {
-        $queryWrapper = QueryWrapper::get()->select(...$columnList)->in('id', $idList);
-        $tableName = $this->tableName;
-        $where = $this->where($queryWrapper);
-        $sql = "select $queryWrapper->sqlSelect from `$tableName` $where";
-        return $this->sqlSession->selectOne($sql, $queryWrapper->paramIndexValuePairs);
+        $queryWrapper = QueryWrapper::get()->in('id', $idList);
+        $sql = $this->getSelectSql($queryWrapper);
+        return $this->sqlSession->selectList($sql, $queryWrapper->paramNameValuePairs);
     }
 
-    protected function selectOne(QueryWrapper $queryWrapper)
+    public function getSelectSql(QueryWrapper $queryWrapper = null): string
     {
-        $where = $this->where($queryWrapper);
-        $sql = "select * from `$this->tableName` $where limit 1";
-        $this->sqlSession->selectList($sql, $queryWrapper->paramIndexValuePairs);
+        $sql = "select ";
+        if (isset($queryWrapper) && isset($queryWrapper->sqlSelect)) {
+            $sql .= $queryWrapper->sqlSelect;
+        }
+        $sql .= " from `$this->tableName`";
+        if (isset($queryWrapper)) {
+            $where = '';
+            if (isset($queryWrapper->entity)) {
+                if (isset($queryWrapper->entity['id'])) {
+                    $where .= 'id=:ew.entity.id';
+                }
+            }
+            if ($queryWrapper->getSqlSegment() && !$queryWrapper->isEmptyOfWhere()) {
+                if (!$queryWrapper->isEmptyOfEntity() && !$queryWrapper->isEmptyOfNormal()) {
+                    $where .= ' and';
+                }
+                $where .= $queryWrapper->getSqlSegment();
+            }
+            if (trim($where)) {
+                $sql .= " where $where";
+            }
+            if ($queryWrapper->getSqlSegment() && $queryWrapper->isEmptyOfWhere()) {
+                $sql .= $queryWrapper->getSqlSegment();
+            }
+        }
+        return $sql;
     }
 
-    protected function selectCount(QueryWrapper $queryWrapper)
+    /**
+     *
+     * @param QueryWrapper|null $queryWrapper
+     * @throws Exception
+     */
+    public function selectOne(QueryWrapper $queryWrapper = null)
     {
-        $where = $this->where($queryWrapper);
-        $sql = "select count(*) from `$this->tableName` $where";
-        $result = $this->sqlSession->selectOne($sql, $queryWrapper->paramIndexValuePairs)[0];
+        $sql = $this->getSelectSql($queryWrapper);
+        $sql .= " limit 1";
+        return $this->sqlSession->selectList($sql, $queryWrapper->paramNameValuePairs)[0];
+    }
+
+    /**
+     * @param QueryWrapper $queryWrapper
+     * @return int
+     * @throws Exception
+     */
+    public function selectCount(QueryWrapper $queryWrapper): int
+    {
+        $queryWrapper->select('count(*)');
+        $sql = $this->getSelectSql($queryWrapper);
+        $result = $this->sqlSession->selectList($sql, $queryWrapper->paramNameValuePairs)[0]['count(*)'];
         return intval($result);
     }
 
 
     /**
      * @param QueryWrapper $queryWrapper
+     * @return array
      * @throws Exception
      */
-    protected function selectList(QueryWrapper $queryWrapper)
+    public function selectList(QueryWrapper $queryWrapper): array
     {
-        $where = $this->where($queryWrapper);
-        $sql = "select * from `$this->tableName` $where";
-        $this->sqlSession->selectList($sql, $queryWrapper->paramIndexValuePairs);
+        $sql = $this->getSelectSql($queryWrapper);
+        return $this->sqlSession->selectList($sql, $queryWrapper->paramNameValuePairs);
     }
 
     /**
@@ -208,7 +256,7 @@ class BaseDao
      */
     public function where(Wrapper $wrapper)
     {
-        $segment = $wrapper->getNormal->segmentList;
+        $segment = $wrapper->getExpression()->getSqlSegment();
         return $segment ? 'where ' . join(' ', $segment) : '';
     }
 }

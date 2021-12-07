@@ -1,6 +1,8 @@
 # SimpleSql
 
-SimpleSql 是一个用 PHP 编写的，依赖 PDO 的数据库操作工具。
+SimpleSql 是一个用 PHP 编写的，依赖 PDO 的简化数据库操作工具。
+
+参考：Java JDBC 规范, MyBatis, MyBatis Plus
 
 ## 1. 入门
 
@@ -10,20 +12,21 @@ SimpleSql 是一个用 PHP 编写的，依赖 PDO 的数据库操作工具。
 
 一个 PDO 对象本质上是一个数据库连接。在 SimpleSql 中。
 
-> SimpleSql 提供了一个 PdoBuilder 构造器类用于简化构造 PDO 对象
+> SimpleSql 提供了一个 `PdoBuilder` 构造器类用于简化构造 PDO 对象
 
 #### 1.1.2. Connection
 
-PDO 提供的功能可能并不完善，在其基础上进行了包装，形成的新的接口 Connection，具有更多抽象功能。
+尽管 PDO 代表着一个连接（Connection），但暴露的接口可能并不完善，所以另外提供了一个 Connection 接口，具有更多抽象功能。
 
-> MysqlConnection 是对 MySQL 数据库连接的特定实现。
+> `PdoConnection` 是对 PDO 的包装
+> `MysqlConnection` 继承于 `PdoConnection`， 是对 MySQL 数据库连接的特定实现。
 
 #### 1.1.3. DataSource
 
 数据源，获取数据库连接的工厂。DataSource 是 SimpleSql 提供的接口，并提供了两个实现类：
 
-- UnpooledDataSource，每次获取连接都会创建新的 PDO
-- PooledDataSource，每次获取连接会从空闲的连接池中获取
+- `UnpooledDataSource`，每次获取连接都会创建新的 PDO
+- `PooledDataSource`，每次获取连接会从空闲的连接池中获取
 
 > 注意，由于不涉及多线程共享数据库连接池，因此 `PooledDataSource` 的空闲连接理论上只有一个。
 
@@ -39,7 +42,7 @@ PDO 提供的功能可能并不完善，在其基础上进行了包装，形成�
 
 #### 1.2.3. PreparedStatement
 
-`PreparedStatement` 是可以进行预编译的 Statement
+`PreparedStatement` 是一个预编译的 Statement
 
 > SimpleSql 提供了 MySQL 的 `PreparedStatement` 的实现 —— `MysqlPreparedStatement`
 
@@ -91,7 +94,7 @@ PDO 提供的功能可能并不完善，在其基础上进行了包装，形成�
 use Tqxxkj\SimpleSql\Mapping\Environment;
 use Tqxxkj\SimpleSql\Session\Defaults\DefaultSqlSessionFactory;
 
-// 创建一个环境对象
+// 创建一个环境对象并设置属性
 $environment = new Environment();
 $environment->setProperties('localhost:test', 'mysql', 'localhost', '3306', 'root', 'JINGjiuBUchi', 'test');
 
@@ -102,13 +105,33 @@ $sqlSessionFactory = new DefaultSqlSessionFactory($environment);
 $session = $sqlSessionFactory->openSession();
 ```
 
+无参 openSession() 默认具有以下行为：
+
+- 使用默认的执行器
+- 使用默认的事务隔离级别（对非自动提交有效）
+- 自动提交
+
 ### 2.2. 查询数据
 
 ```php
 $session = $sqlSessionFactory->openSession();
 $list = $session->selectList("select * from `users`");
-$user = $session->selectOne("select * from `users`");
+$user = $session->selectOne("select * from `users` where `id`=?", [
+    1 => [1, PDO::PARAM_INT]
+]);
+$user = $session->selectOne("select * from `users` where `id`=:id", [
+    ':id' => [1, PDO::PARAM_INT]
+]);
 ```
+
+一般有三种调用方式：
+
+- 无参执行 SQL
+- 有参执行 SQL，以 ? 为占位符，传入从 1 开始的索引数字
+- 有参执行 SQL，以 :name 为占位符，传入对应的映射值
+
+> 这种 session 调用方式是最原始的方式
+> 需要指定参数类型，目前支持 PDO::PARAM_INT 和 PDO::PARAM_STR 两种
 
 ### 2.3. 添加数据
 
@@ -128,21 +151,22 @@ $affected_num = $session->update("delete from `users` where `id`=?", [
 ]);
 $affected_num = $session->update("update `users` set `username`=? where `id`=?", [
     1 => ['hi', PDO::PARAM_STR],
-    2 => ['hi', PDO::PARAM_INT]
+    2 => [1, PDO::PARAM_INT]
 ]);
 ```
 
-
-
-## 3. 高级用法
+## 3. 进阶用法
 
 ### 3.1. 使用 DAO 模型操作数据库
+
+> 该项目约定数据库的设计中，主键不支持复合主键，且名称叫 id，类型为 int（硬编码）
 
 #### 步骤一
 
 定义一个对应数据库表的 Service 对象，并继承 BaseService。
 
 声明的自定义 Service 需要实现 tableName() 显式地表示表名称
+
 ```php
 class UserService extends BaseService
 {
@@ -158,14 +182,14 @@ class UserService extends BaseService
 传入 $session 给 Service 进行构造，使用 BaseService 暴露的方法进行操作
 
 ```php
-$session = $sqlSessionFactory->openSession(null, 0, false);
+$session = $sqlSessionFactory->openSession(null, 0, true);
 $usersService = new UserService($session);
 $usersService->select();
 ```
 
 ### 3.2. save
 
-调用 save 方法，传入一个关联数组，方法执行完毕之后，关联数组会得到一个以 'id' 为 key 的值，该值表示实体的自增 id。
+调用 save 方法，传入一个关联数组，方法执行完毕之后，关联数组会得到一个以 'id' 为 key 的值，该值为实体的自增 id。
 
 ```php
 $user = [
@@ -178,7 +202,8 @@ $usersService->save($user);
 
 ### 3.3. saveBatch
 
-保存多个实体，自增主键类似 save 回传给原数据
+保存多个实体，自增主键与 save 一样，传递给原数组
+
 ```php
 $entityList = [
     [
@@ -193,4 +218,52 @@ $entityList = [
     ]
 ];
 $userService->saveBatch($entityList);
+```
+
+### 3.4. getById
+
+通过 id 获得实体
+
+```php
+$user = $userService->getById(1);
+```
+
+### 3.5. listByIds
+
+通过 id 数组获得实体
+
+```php
+$users = $userService->listByIds([1, 2]);
+```
+
+### 3.6. getOne
+
+```php
+$qw = QueryWrapper::get()->eq('username', 'jcb');
+$user = $userService->getOne($qw);
+```
+
+> - 查询数据通过 Wrapper 进行构造
+> - 内部会在末尾添加 limit 1
+
+### 3.7. list
+
+根据查询条件获得所有数据
+
+```php
+$qw = QueryWrapper::get();
+$qw->select('count(*)', 'username');    // 支持聚合查询
+$qw->groupBy('username');               // 分组
+$qw->orderBy('count(*)', false);        // 聚合函数排序
+$qw->having('count(*) > {0}', [5]);     // 分组筛选
+$username_count = $userService->list($qw);
+```
+
+### 3.8. count
+
+计数
+
+```php
+$qw = QueryWrapper::get()->eq('username', 'jcb');
+$count = $userService->count($qw);
 ```

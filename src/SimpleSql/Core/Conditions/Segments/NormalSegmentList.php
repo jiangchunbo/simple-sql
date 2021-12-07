@@ -11,7 +11,7 @@ class NormalSegmentList extends AbstractISegmentList
             // TODO 只有 and() 以及 or() 以及 not() 会进入
             if ($firstSegment !== 'not') {
                 // and 或者 or
-                if (sizeof($this->segmentList)) {
+                if ($this->isEmpty()) {
                     return false;
                 }
                 $matchLastAnd = $this->lastValue === 'and';
@@ -27,13 +27,21 @@ class NormalSegmentList extends AbstractISegmentList
                     }
                 }
             } else {
-                // TODO
+                return false;
             }
         } else {
-            if (in_array($this->lastValue, ['and', 'or']) && sizeof($this->segmentList) !== 0) {
+            if (in_array($this->lastValue, ['and', 'or']) && !$this->isEmpty()) {
                 array_push($this->segmentList, 'and');
             }
         }
         return true;
+    }
+
+    protected function childrenSqlSegment(): string
+    {
+        if (in_array($this->lastValue, ['and', 'or'])) {
+            $this->removeAndFlushLast();
+        }
+        return '(' . join(' ', $this->segmentList) . ')';
     }
 }

@@ -11,6 +11,11 @@ class QueryWrapper extends AbstractWrapper
      */
     public $sqlSelect;
 
+    /**
+     * @var array
+     */
+    public $entity;
+
     public function __construct()
     {
         parent::__construct();

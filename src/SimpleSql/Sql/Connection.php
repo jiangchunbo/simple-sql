@@ -31,6 +31,4 @@ interface Connection
     function setTransactionIsolation(int $level): void;
 
     function getTransactionIsolation(): int;
-
-    function getPdo(): PDO;
 }
